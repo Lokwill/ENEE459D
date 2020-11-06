@@ -2,7 +2,7 @@
 
 module lab9(DIN, Resetn, Clock, Run, Done, BusWires, 
 R, result, Tstep_Q, Tstep_D, IRin, DINout, Ain, Gout, Gin, AddSub, IR, I, Xreg, Yreg, G, MUXsel,
-D_IN, test1, test_input, Rout, Rin);
+D_IN, test1, test_input, Rout, Rin, mem, addr, dout, pwrite,penable);
 input [8:0] DIN;
 input [8:0] test_input;
 input Resetn, Clock, Run;
@@ -21,6 +21,11 @@ output logic [8:0] D_IN; // register used
 output test1;
 output logic [7:0] Rout, Rin; 
 output logic [9:0] MUXsel; 
+output reg [8:0] mem [0:255];
+output logic [8:0] addr;
+output logic [8:0] dout;
+output logic pwrite;
+output logic penable;
  parameter T0 = 2'b00, T1 = 2'b01, T2 = 2'b10, T3 = 2'b11;
 
 //. . . declare variables
@@ -32,8 +37,7 @@ output logic [9:0] MUXsel;
   logic [8:0] A;
   //new signals and buses for lw and sw, rtc, memory, instruction counter instead of load
   logic incr_pc, addr_in, dout_in;
-  logic [8:0] addr;
-  logic [8:0] dout;
+
   logic penable;
   logic psel;
   logic pwrite;
@@ -86,6 +90,7 @@ begin
 		psel = 0;
 		pwrite = 0;
 		get_mem = 0;
+		dout_in = 0;
 //	. . . specify initial values
 	case (Tstep_Q)
 		T0: // store DIN in IR in time step 0
@@ -122,10 +127,12 @@ begin
             addr_in = 1'b1;
             pwrite = 0;            
           end
-          3'b101: //sw [Ry] <- [Rx]
+          3'b101: //sw [Rx] <- [Ry]
           begin
             Rout = Xreg;
+            addr_in = 1'b1;
             pwrite = 1;
+          //  dout_in = 1'b1;
           end
 		  default: begin
 			Gin = 0; 
@@ -148,6 +155,13 @@ begin
           3'b100:
           begin
             penable = 1;
+          end
+          3'b101:
+          begin
+            Rout = Yreg;
+            dout_in = 1'b1;
+            penable = 0;
+            pwrite = 1'b1;  
           end
 		  default: begin
 		    Gin = 0;
@@ -173,6 +187,12 @@ begin
 	        DINout = 1'b1;
 	        get_mem = 1'b1;
 	        Rin = Yreg; //i think this should work
+	        Done = 1'b1;
+	      end
+	      3'b101:
+	      begin
+	        penable = 1;
+	        pwrite = 1;
 	        Done = 1'b1;
 	      end
 		  default: begin
@@ -209,8 +229,9 @@ regn reg_IR (D_IN, IRin, Clock, IR); //instruction register - will be changed to
 regn reg_G (result, Gin, Clock, G); //register to store contents of ALU
 regn reg_A (BusWires, Ain, Clock, A); //register to store output of register for ALU, change
 regn reg_addr (BusWires, addr_in, Clock, addr); //register to store address for mem
+regn reg_dout (BusWires, dout_in, Clock, dout); //register to store data for memory for sw instruction
 
-mem memory (Clock, addr, penable, pwrite, dout, mem_in); // this is problematic, but I don't know how to fix it!
+mem_t memory (Clock, addr, penable, pwrite, dout, mem_in,mem); // this is problematic, but I don't know how to fix it!
 
 smallALU myALU(!(AddSub), A, BusWires, result);
 
