@@ -1,2 +1,2 @@
-This is the processor without the implementation of the program counter, APB interface, and sw and sll/srl instructions.
-Also no documentation - just for myself to save stuff.
+This is the processor without the implementation of the program counter, APB interface, and sll/srl instructions.
+Also no proper documentation - just for myself to save stuff.
