@@ -1,1 +1,4 @@
 simulation stuff
+
+proc_tb2: testbench for this version of the processor, the stimuli relevant are reset, clk, and DIN for the movimm instructions
+there is a delay for the very first mov_imm instruction required
