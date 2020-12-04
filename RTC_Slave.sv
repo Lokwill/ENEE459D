@@ -40,30 +40,30 @@ logic[1:0] n_state = Idle; //next state (initialize idle)
 
 //RTC.sv Inputs
 logic rtc_on;
-logic clk;
+//logic clk;
 logic[1:0] operation;
 
 //RTC.sv outputs
 logic alarm_signal;
 
 //Instantiate RTC.sv
-RTC dut(rtc_on, clk, preset, operation, pwdata, prdata, alarm_signal);
+RTC dut(rtc_on, pclk, preset, operation, pwdata, prdata, alarm_signal);
 
 //Internal Variables
   
 //clock vars
 integer count; 
 //Parameter
-localparam clk_div = 32'd10;
+//localparam clk_div = 32'd10;
 logic curr_clk; //selected clock not divided
 				//clk is the final divided clk
 
 //intialize clock divider
-initial begin
+/*initial begin
    count = 0; 
    clk = 0;
    $display("POOP");
-end
+end*/
 
 //clock selection logic
 always @ (posedge pclk, posedge ext_clk, negedge pclk, negedge ext_clk) 
@@ -75,20 +75,20 @@ begin
     	curr_clk = pclk;  
     end
 end
-
+/*
  //get a 1Hz clock from curr_clk (division)
 always @ (posedge curr_clk) 
 begin
     if (count == (clk_div - 1)) begin
         count <= 32'b0;
         clk <= ~clk;
-    end else begin
+    end else begin 
         count <= count + 1;
     end
-end 
+end */
   
 //Current State Logic (update values on rising edge)
-always_ff @(posedge clk, negedge preset)
+always_ff @(posedge pclk, negedge preset)
 begin
     //If reset is active (0), go back to Idle. Otherwise go to n_state
     if(preset == 0) begin
